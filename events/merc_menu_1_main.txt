@@ -1,6 +1,7 @@
 ###
 # This file is part of a project hosted at https://github.com/stellaris-mods
 # Copyright (c) 2017 folk@folk.wtf
+# Copyright (c) 2018 stark43@gmail.com
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -89,12 +90,8 @@ country_event = {
 
 	immediate = { set_country_flag = "fmerc_diplomacy_engaged" }
 
-	option = {
-		name = "merc.close"
-		default_hide_option = yes
-		hidden_effect = { remove_country_flag = "fmerc_diplomacy_engaged" }
-	}
-	option = {
+
+	option = { # list of operations
 		name = merc.initial.operations.button
 		hidden_effect = { country_event = { id = mercMenu.200 } }
 	}
@@ -214,6 +211,11 @@ country_event = {
 		trigger = { has_modifier = merc_enclave_insurance }
 		remove_modifier = merc_enclave_insurance
 		hidden_effect = { country_event = { id = mercMenu.150 } }
+	}
+	option = {
+		name = "merc.close"
+		default_hide_option = yes
+		hidden_effect = { remove_country_flag = "fmerc_diplomacy_engaged" }
 	}
 }
 
