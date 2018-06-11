@@ -198,6 +198,15 @@ country_event = {
 				text = merc.condition.station.access
 				has_country_flag = "fmerc_allow_stations"
 			}
+			custom_tooltip = {
+				text = merc_enclave.trust
+				event_target:mercenaries = {
+					trust = {
+						who = ROOT
+						value > 20
+					}
+				}
+			}
 		}
 		add_modifier = {
 			modifier = merc_enclave_insurance
