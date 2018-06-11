@@ -201,6 +201,7 @@ merc.destroyed.button: "A blow to free trade."
 # Tooltip conditions
 #
 
+merc_enclave.trust: "Requires this §YMercenary Enclave§! to have:\n£opinion  Opinion +20\n"
 merc.condition.station.access: "We need to allow them access to construct operations facilities in our territory."
 merc.condition.deposit: "You need at least £minerals §G2500§! deposited with $merc.name.colored$."
 merc.condition.invalid.target: "We §Pnever§! execute this specific operation against this type of empire."
@@ -281,7 +282,7 @@ merc.operation.fleet.desc: "The most dangerous service we provide. This puts us 
 # Help with Leviathans
 merc.operation.leviathans: "Help with Leviathans"
 merc.operation.leviathans.button: "§Y$merc.operation.leviathans$ ...§!"
-merc.operation.leviathans.desc: "New unusual service.Have you met with these strange, horrific and unusual giants.Of course, we will not be able to overcome them for You, but we can help You a little with them.We will create a fleet with fleet power 10K / 20K / 30K which will wait for you in the adjacent system from Leviathan.Drones will be programmed to follow you and possibly serve as a distracting maneuver when attacking a monster.This will reduce the loss of your fleet. Select the type of §RLeviathan§! in our services menu on the right."
+merc.operation.leviathans.desc: "New unusual service. Have you met with these strange, horrific and unusual giants.Of course, we will not be able to overcome them for You, but we can help You a little with them.We will create a fleet with fleet power 10K / 20K / 30K which will wait for you in the adjacent system from Leviathan.Drones will be programmed to follow you and possibly serve as a distracting maneuver when attacking a monster.This will reduce the loss of your fleet. Select the type of §RLeviathan§! in our services menu on the right."
 
 # Dirty Missions
 merc.operation.dirty_missions: "«Dirty Missions»"
@@ -290,11 +291,11 @@ merc.operation.dirty_missions.desc: "Dirty missions from our partners Pirate cla
 merc.operation.dirty_missions.deny.desc: "§RWe consider it beneath our dignity to carry out such types of missions, but not mercenaries from the §Y"Privateering Enterprises"§!, unfortunately we could not contact them.§!"
 merc.operation.dirty_missions.deny.tooltip: "§RUnfortunately we could not contact §Y"Privateering Enterprises"§!.§!"
 
-merc.operation.dirty_missions.assassination: "Hunting for Researchers"
-merc.operation.dirty_missions.assassination.tooltip: "Mercenaries from §Y"Privateering Enterprises"§! locate, engage, and destroy from 3 to 5 of Your enemy's Research ships."
+merc.operation.dirty_missions.hunt: "Hunting for Researchers"
+merc.operation.dirty_missions.hunt.tooltip: "Mercenaries from §Y"Privateering Enterprises"§! locate, engage, and destroy from 3 to 5 of Your enemy's Research ships."
 
-merc.operation.dirty_missions.terror: "Assassination"
-merc.operation.dirty_missions.terror.tooltip: "Mercenaries from §Y"Privateering Enterprises"§! will be introduced into the state structures of your opponent and will try to eliminate the leader. If successful, your opponent will have to re-election. Completely, this is a very risky operation with a high risk of detection and failure."
+merc.operation.dirty_missions.assassination: "Assassination"
+merc.operation.dirty_missions.assassination.tooltip: "Mercenaries from §Y"Privateering Enterprises"§! will be introduced into the state structures of your opponent and will try to eliminate the leader. If successful, your opponent will have to re-election. Completely, this is a very risky operation with a high risk of detection and failure."
 
 merc.operation.dirty_missions.terror: "Terror in the Capital"
 merc.operation.dirty_missions.terror.tooltip: "Mercenaries from §Y"Privateering Enterprises"§! having penetrated into the capital and will hold several explosions. In case of success, the state and industrial capacities of the capital will be undermined. Completely, this is a very risky operation with a high risk of detection and failure."
