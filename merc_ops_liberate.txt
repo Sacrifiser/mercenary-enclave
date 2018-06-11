@@ -1,0 +1,519 @@
+###
+# This file is part of a project hosted at https://github.com/stellaris-mods
+# Copyright (c) 2017 folk@folk.wtf
+# Copyright (c) 2018 stark43@gmail.com
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+###
+
+
+namespace = mercOpsLiberate
+
+
+# STAGE 3 CONTROLLER
+# These events are used exclusively by the "liberate" operation.
+
+# on_planet_defenders_win
+# Root = country, planet owner (merc target)
+# From = country, attack leader (rebel)
+country_event = {
+	id = mercOpsLiberate.50
+	is_triggered_only = yes
+	hide_window = yes
+	trigger = {
+		is_country_type = "default"
+		FROMFROM = {
+			has_planet_flag = "merc_target"
+			controller = { is_same_value = ROOT }
+		}
+	}
+	immediate = {
+		log = "mercOpsLiberate: on_planet_defenders_win (.50)"
+		
+		# Debug scope printing standard + targets
+		if = { limit = { has_global_flag = "debug" }
+			target_scopes_log = yes
+			print_scope_effect = yes
+		}
+		
+		random_country = {
+			limit = {
+				is_country_type = "fmerc_operations"
+				reverse_has_relation_flag = {
+					flag = fmerc_liberate_rebels
+					who = FROM
+				}
+			}
+			log = "Checking if we should try again..."
+			
+			merc_stage4_failed = yes
+			set_country_flag = "planet_defenders_win"
+
+		}
+	}
+}
+
+# on_planet_defenders_lose
+# This = country, planet owner (merc target)
+# From = country, attack leader (rebel)
+# FromFrom = planet
+country_event = {
+	id = mercOpsLiberate.60
+	hide_window = yes
+	is_triggered_only = yes
+	trigger = {
+		FROM = { is_country_type = "rebel" }
+		FROMFROM = {
+			has_planet_flag = "merc_target"
+			exists = leader
+		}
+	}
+	immediate = {
+		log = "mercOpsLiberate: on_planet_defenders_lose (.60)"	
+
+		# In vanilla, the leader was killed.
+		# But now that there's only one governor per sector,
+		# that sounds unreasonable to me.
+		FROMFROM = {
+			leader = { unassign_leader = THIS }
+		}
+	}
+}
+
+# on_rebels_take_planet
+# Initial rebels manage to take control of the planet, happens before the new owner is set, after the war is created.
+# This = Rebel Country
+# From = Planet
+# FROM.Owner =  new owner
+country_event = {
+	id = mercOpsLiberate.70
+	hide_window = yes
+	is_triggered_only = yes
+	trigger = {
+		has_country_flag = "fmerc_liberate_rebels"
+	}
+	immediate = {
+		log = "mercOpsLiberate: on_rebels_take_planet (.70)"
+
+		FROM.owner = {
+			# Event target used in 4211
+			save_event_target_as = rebelled_against
+			# This vanilla event can be used directly
+			country_event = { id = unrest.4211 }
+		}
+	}
+}
+
+# on_rebels_take_planet_owner_switched
+# This = Rebel Country
+# From = Planet
+# FromFrom = War
+country_event = {
+	id = mercOpsLiberate.71
+	hide_window = yes
+	is_triggered_only = yes
+	trigger = {
+		has_country_flag = "fmerc_liberate_rebels"
+	}
+	immediate = {
+		log = "mercOpsLiberate: on_rebels_take_planet_owner_switched (.71)"
+
+		# Find mercenary operations
+		# We can't use merc_set_country and merc_set_buyer directly, they were changed
+		random_country = {
+			limit = {
+				is_country_type = "fmerc_operations"
+				reverse_has_relation_flag = {
+					flag = fmerc_liberate_rebels
+					who = ROOT
+				}
+			}
+			
+			# Should be new colony			
+			random_country = {
+				limit = {
+					reverse_has_relation_flag = {
+						who = PREV
+						flag = merc_operations_target
+					}
+				}
+				save_event_target_as = merc_country
+			}
+				
+			# Should be byer # Ishini Pact
+			random_country = {
+				limit = {
+					reverse_has_relation_flag = {
+						who = PREV
+						flag = merc_operations_squad
+					}
+				}
+				save_event_target_as = merc_buyer
+			}			
+
+			subtract_variable = { which = "MercTargetCount" value = 1 }
+			change_variable = { which = "MercLiberatedPlanets" value = 1 }
+			change_variable = { which = "MercKillsTotal" value = 1 }
+
+			log = "Liberation complete!"
+			merc_stage4_maybe_complete = yes
+			
+			# Debug scope printing targets
+			if = { limit = { has_global_flag = "debug" }
+				target_scopes_log = yes
+			}
+
+		}
+
+		# Clean the slate as much as possible
+		#FROM = { destroy_colony = { keep_buildings = yes } }
+			FROM = { 
+				clear_buildings = no
+				destroy_colony = yes
+			}
+		destroy_country = yes
+
+		# Debug scope printing targets
+		if = { limit = { has_global_flag = "debug" }
+			log = "mercOpsLiberate: (.71) scopes:"
+			print_scope_effect = yes
+		}
+		
+	#######################################   mercOpsLiberate.1335   ###################################
+		# And re-start colony
+		#FROM = { planet_event = { id = mercOpsLiberate.1335 } }
+		
+		# because scope in planet_event (.1335) have no event targets, such as merc_country, merc_buyer
+		
+		log = "mercOpsLiberate.71 destroing colony completed, re-start colony started"
+
+		FROM = { # Planet
+			if = {
+				limit = {
+					merc_is_country_target_valid = yes
+					event_target:merc_country = {
+						NOT = { has_authority = auth_hive_mind }
+					}
+				}
+
+				event_target:merc_country = {
+					random_owned_pop = {
+						limit = {
+							is_same_species = event_target:merc_country
+							is_robot_pop = no
+							NOT = { has_trait = trait_self_modified }
+						}
+						#log = "mercOpsLiberate.71 Creating copy of target countries main species."
+						
+						FROM = { set_planet_flag = "merc_got_species" }
+						species = {
+
+							create_species = {
+								name = this
+								plural = this
+								class = this
+								portrait = this
+								traits = this
+								homeworld = FROM
+							}
+						}
+					}
+				}
+			}	
+			
+			if = { limit = { NOT = { has_planet_flag = "merc_got_species" } }
+				log = "Creating random new species."
+				create_species = {
+					name = random
+					class = random_non_machine
+					portrait = random
+					traits = random
+					allow_negative_traits = no
+					extra_trait_points = 3 # They need a boost they are so tiny
+					homeworld = FROM
+				}
+			}
+			remove_planet_flag = "merc_got_species"
+
+			# Determine ethos template
+			if = {
+				limit = { event_target:merc_buyer = { has_ethic = ethic_gestalt_consciousness } }
+					random_country = {
+						limit = { NOT = { has_ethic = ethic_gestalt_consciousness } }
+						save_event_target_as = ethosTemplate
+					}
+					create_country = {
+						name = random
+						type = default
+						species = last_created_species
+						ethos = event_target:ethosTemplate
+						authority = random
+						civics = random
+						flag = random
+						day_zero_contact = no
+						effect = {
+							merc_liberate_fix_species = yes
+						}
+					}
+				else = {
+					create_country = {
+						name = random
+						type = default
+						species = last_created_species
+						ethos = event_target:merc_buyer
+						authority = random
+						civics = random
+						flag = random
+						day_zero_contact = no
+						effect = {
+							merc_liberate_fix_species = yes
+						}
+					}
+				}
+			}
+
+			set_owner = last_created_country
+			set_controller = last_created_country
+			create_colony = {
+				owner = last_created_country
+				species = owner_main_species
+				ethos = owner
+			}
+			set_capital = yes
+			last_created_country = { country_event = { id = mercOpsLiberate.1336 } }
+		}
+	}
+}
+
+# previous problem with [21:02:22][trigger.cpp:466]: Script Error, Checking trigger against an unsupported scope!
+# in mercOpsLiberate.1335 was fixed integreting code in mercOpsLiberate.71
+
+# Just so we get our own root scope here, it's just more clean.
+country_event = {
+	id = mercOpsLiberate.1336
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = {
+
+		# Debug scope printing standard and targets
+		if = { limit = { has_global_flag = "debug" }
+			log = "mercOpsLiberate (.1336) scopes:"		
+			print_scope_effect = yes
+			target_scopes_log = yes
+		}
+		
+
+		set_country_flag = "day_0"
+		# lulz liberateD, no point in fixing that
+		set_country_flag = "merc_op_liberated_await_clear_skies"
+		add_modifier = {
+			modifier = "recently_liberated"
+			days = 3600
+		}
+
+		if = {
+			limit = {
+				OR = {
+					merc_is_country_target_valid = no
+					NOT = { event_target:merc_country = { is_country_type = default } }
+				}
+			}
+			log = "Copying techs from operation buyer."
+			copy_techs_from = { # error.log whines if we dont exclude something
+				target = event_target:merc_buyer
+				except = { tech_akx_worm_1 tech_akx_worm_2 tech_akx_worm_3 }
+			}
+		else = {
+			log = "Copying techs from operation target."
+			copy_techs_from = {
+				target = event_target:merc_country
+				except = { tech_akx_worm_1 tech_akx_worm_2 tech_akx_worm_3 }
+			}
+		} }
+
+		add_minerals = 3000
+		add_energy = 5000
+		add_influence = 500
+		add_food = 50
+		add_100_unity_per_year_passed = yes
+
+		create_leader = {
+			type = ruler
+			species = ROOT
+			name = random
+			skill = 200
+		}
+		assign_leader = last_created_leader
+		create_leader = {
+			type = governor
+			species = ROOT
+			name = random
+			skill = 200
+			traits = {
+				trait = random_trait
+				trait = random_trait
+			}
+		}
+	
+		establish_contact = { who = event_target:merc_buyer location = capital_scope }
+		if = {
+			limit = { merc_is_country_target_valid = yes }
+
+			establish_contact = { who = event_target:merc_country location = capital_scope }
+		}
+		# Setting and removing this flag before and after `establish_contact`,
+		# respectively, prevents the action.10 event from showing ('we have encountered')
+		# yet still allows the introduction diplomatic screen.
+		# Doing it in any other order seems to either produce or prevent both.
+		remove_country_flag = "day_0"
+
+		establish_communications = event_target:merc_buyer
+		if = {
+			limit = { merc_is_country_target_valid = yes }
+			establish_communications = event_target:merc_country
+			add_opinion_modifier = {
+				who = event_target:merc_country
+				modifier = opinion_broke_away_from
+			}
+			event_target:merc_country = {
+				add_opinion_modifier = {
+					who = ROOT
+					modifier = opinion_broke_away
+				}
+			}
+			if = {
+				limit = { ROOT = { has_opinion_modifier = { who = event_target:merc_country modifier = opinion_new_contact } } }
+				ROOT = { remove_opinion_modifier = { who = event_target:merc_country modifier = opinion_new_contact } }
+			}
+		}
+		
+		add_opinion_modifier = {
+			who = event_target:merc_buyer
+			modifier = opinion_liberated_us
+		}
+		
+		event_target:merc_buyer = {
+			add_opinion_modifier = {
+				who = ROOT
+				modifier = opinion_we_liberated
+			}
+		}
+
+		if = {
+			limit = { has_opinion_modifier = { who = event_target:merc_buyer modifier = opinion_new_contact } }
+			remove_opinion_modifier = { who = event_target:merc_buyer modifier = opinion_new_contact }
+		}
+
+		event_target:merc_buyer = { country_event = { id = mercOpsLiberate.1339 } }
+		
+		capital_scope = {
+			planet_event = { id = game_start.13 } # replace some buildings for special empires
+
+			planet_event = { id = game_start.21 } # upgrade colony shelter
+
+			planet_event = { id = game_start.22 } # set up additional buildings (mines, farms, power plants)
+
+			planet_event = { id = game_start.14 } # replace some tile blockers for special empires
+
+			# destroy_colony removed all the pops, probably.
+			best_tile_for_pop = { create_pop = { species = ROOT ethos = ROOT } }
+
+			best_tile_for_pop = { create_pop = { species = ROOT ethos = ROOT } }
+
+			best_tile_for_pop = { create_pop = { species = ROOT ethos = ROOT } }
+
+			best_tile_for_pop = { create_pop = { species = ROOT ethos = ROOT } }
+
+			best_tile_for_pop = { create_pop = { species = ROOT ethos = ROOT } }
+
+			# XXX Create project to contact merc
+		}
+		
+		## Open borders to byer. Not working in some cases -do not know why
+		set_closed_borders = {
+			who = event_target:merc_buyer
+			status = no
+		}
+
+	}
+}
+
+event = {
+	id = mercOpsLiberate.1337
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		any_country = { has_country_flag = "merc_op_liberated_await_clear_skies" }
+	}
+
+	immediate = {
+	
+		log = "mercOpsLiberate: (.1337) started"
+			
+		every_country = {
+			limit = { has_country_flag = "merc_op_liberated_await_clear_skies" }
+			country_event = { id = mercOpsLiberate.1338 }
+		}
+	}
+}
+
+
+country_event = {
+	id = mercOpsLiberate.1338
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		has_country_flag = "merc_op_liberated_await_clear_skies"
+		exists = capital_scope
+		capital_scope = {
+			solar_system = {
+				NOT = {
+					any_ship_in_system = {
+						exists = owner
+						owner = {
+							NOT = { is_same_value = ROOT }
+						}
+					}
+				}
+			}
+		}
+	}
+
+	immediate = {
+		log = "mercOpsLiberate: Solar system empty (.1338)"
+		remove_country_flag = "merc_op_liberated_await_clear_skies"
+		country_event = { id = game_start.9 } # Empire init - add ships
+		create_fleet_from_naval_cap = 0.5
+	}
+}
+
+country_event = {
+	id = mercOpsLiberate.1339
+	title = mercOpsLiberate.1339.title
+	desc = mercOpsLiberate.1339.desc
+	picture = GFX_evt_star_chart
+	location = FROM
+	is_triggered_only = yes
+
+	immediate = {
+
+	}
+	option = {
+		name = INTERESTING
+	}
+}

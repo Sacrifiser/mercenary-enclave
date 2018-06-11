@@ -1,0 +1,100 @@
+###
+# This file is part of a project hosted at https://github.com/stellaris-mods
+# Copyright (c) 2017 folk@folk.wtf
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+###
+
+
+namespace = mercMenu
+
+# Target selected, next agenda is the disguise
+country_event = {
+	id = mercMenu.2000
+	title = merc.disguise.name
+	desc = {
+		trigger = {
+			text = "merc.disguise.desc"
+			text = newline
+			text = "merc.param.target"
+			switch = {
+				trigger = has_country_flag
+				merc_op_spaceport = { text = "merc.param.operation.spaceport" }
+				merc_op_liberate = { text = "merc.param.operation.liberate" }
+				merc_op_civilian = { text = "merc.param.operation.civilian" }
+				merc_op_military = { text = "merc.param.operation.fleet" }
+			}
+			success_text = { text = "merc.param.minerals" check_variable = { which = "MercCost" value > 0 } }
+			success_text = { text = "merc.param.energy" check_variable = { which = "MercCostEnergy" value > 0 } }
+			success_text = { text = "merc.param.influence" check_variable = { which = "MercCostInfluence" value > 0 } }
+			success_text = { text = "merc.param.minerals.monthly" check_variable = { which = "MercMonthlyCost" value > 0 } }
+			success_text = { text = "merc.param.energy.monthly" check_variable = { which = "MercMonthlyCostEnergy" value > 0 } }
+			success_text = { text = "merc.param.influence.monthly" check_variable = { which = "MercMonthlyCostInfluence" value > 0 } }
+			text = "merc.param.success"
+			text = "merc.param.detection"
+			text = newline
+			text = "merc.param.multiplier.notyet"
+			text = "merc.param.multiplier.trust"
+			text = "merc.param.multiplier.target"
+		}
+	}
+	is_triggered_only = yes
+	diplomatic = yes
+	custom_gui = "enclave_trader_window"
+	custom_gui_option = "enclave_trader_option"
+	force_open = yes
+	picture_event_data = {
+		portrait = event_target:mercenaries
+		room = enclave_trader_room
+	}
+
+	immediate = { merc_menu_4_disguise_init = yes }
+
+
+	option = {
+		name = "merc.disguise.random.button"
+		custom_tooltip = "merc.disguise.random.tooltip"
+		hidden_effect = { merc_menu_4_disguise_random = yes }
+	}
+	option = {
+		name = "merc.disguise.nonbuyer.button"
+		custom_tooltip = "merc.disguise.nonbuyer.tooltip"
+		hidden_effect = { merc_menu_4_disguise_nonbuyer = yes }
+	}
+	option = {
+		name = "merc.disguise.buyer.button"
+		custom_tooltip = "merc.disguise.buyer.tooltip"
+		hidden_effect = { merc_menu_4_disguise_buyer = yes }
+	}
+	option = {
+		name = "merc.disguise.pirate.button"
+		custom_tooltip = "merc.disguise.pirate.tooltip"
+		hidden_effect = { merc_menu_4_disguise_pirate = yes }
+	}
+	option = {
+		name = "merc.disguise.xenofauna.button"
+		custom_tooltip = "merc.disguise.xenofauna.tooltip"
+		hidden_effect = { merc_menu_4_disguise_xenofauna = yes }
+	}
+	option = {
+		name = "merc.back"
+		hidden_effect = { country_event = { id = mercMenu.1100 } }
+	}
+	option = {
+		name = "merc.close"
+		default_hide_option = yes
+		hidden_effect = { remove_country_flag = "fmerc_diplomacy_engaged" }
+	}
+}
